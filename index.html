@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Minimum</title>
+    <style>
+        :root {
+            --bg: #f9fafb;
+            --surface: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --accent-muted: #374151;
+            --success-muted: #065f46;
+            --radius: 8px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem 1rem;
+            line-height: 1.5;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin: 0 0 1rem 0;
+            font-weight: 600;
+        }
+
+        /* Inputs & Controls */
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+        
+        select:focus, input[type="text"]:focus {
+            outline: 2px solid var(--border);
+            outline-offset: -2px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+        }
+
+        input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 1.1em;
+            height: 1.1em;
+            accent-color: var(--accent-muted);
+            cursor: pointer;
+        }
+
+        label {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .disabled-overlay {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .timer-note {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: -0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Dopamine Gate */
+        .gate {
+            text-align: center;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: #f3f4f6;
+            color: var(--text-secondary);
+            transition: all 0.4s ease;
+        }
+
+        .gate.unlocked {
+            background: #ecfdf5; /* Very subtle green */
+            border-color: #d1fae5;
+            color: var(--success-muted);
+        }
+
+        .gate-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Optional Section */
+        .optional-section {
+            margin-top: 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .optional-section.visible {
+            opacity: 1;
+            pointer-events: auto;
+            height: auto;
+            overflow: visible;
+        }
+
+        .sub-group {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .sub-group-title {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer Stats */
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Daily Minimum Before Leisure</h1>
+        <div class="date" id="date-display">Loading...</div>
+    </header>
+
+    <div class="section">
+        <h2>1. Technical Focus</h2>
+        <select id="tech-select">
+            <option value="" disabled selected>Select Area</option>
+            <option value="C Programming">C Programming (30–45 min)</option>
+            <option value="Algorithms Python">Algorithms in Python (30–45 min)</option>
+            <option value="Web Dev">Web Development (30–45 min)</option>
+            <option value="Digital Electronics">Digital Electronics (30–45 min)</option>
+        </select>
+
+        <div id="tech-controls" class="disabled-overlay">
+            <span class="timer-note" id="timer-status">Select a topic to start 10m timer.</span>
+            <input type="text" id="tech-input" placeholder="What did you work on today?">
+            
+            <div class="checkbox-row">
+                <input type="checkbox" id="check-tech">
+                <label for="check-tech">Completed focused session with tangible output</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Physical</h2>
+        <div class="checkbox-row">
+            <input type="checkbox" id="check-phys">
+            <label for="check-phys">10–20 minutes of movement (walk or basic exercise)</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. Religious Anchor</h2>
+        <div class="checkbox-row">
+            <input type="checkbox" id="check-rel">
+            <label for="check-rel">Daily prayers completed</label>
+        </div>
+    </div>
+
+    <div class="gate" id="gate">
+        <span class="gate-title">Leisure Access</span>
+        <span id="gate-message">Locked. Daily minimum not met.</span>
+    </div>
+
+    <div class="section optional-section" id="optional-section">
+        <h2>Optional Productive / Low-Dopamine Activities</h2>
+        
+        <div class="sub-group-title">Mental / Learning</div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Read 5–15 pages</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Review one CS concept lightly</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Watch one educational video</label></div>
+
+        <div class="sub-group-title" style="margin-top:1rem;">Physical / Regulation</div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Extra short walk</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Stretch for 5–10 minutes</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Breathing or quiet sitting (5 min)</label></div>
+
+        <div class="sub-group-title" style="margin-top:1rem;">Reflection / Order</div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Write 3–5 lines about today</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Plan tomorrow’s technical focus</label></div>
+        <div class="checkbox-row"><input type="checkbox" class="opt-check"><label>Clean workspace for 5 minutes</label></div>
+    </div>
+
+    <footer>
+        <span id="streak-display">Streak: 0</span>
+        <span id="last-display">Last: Never</span>
+        <span id="total-display">Total: 0</span>
+    </footer>
+</div>
+
+<script>
+    const CONFIG = {
+        minTimeMs: 10 * 60 * 1000 // 10 minutes
+        // minTimeMs: 1000 // Debug: 1 second (Uncomment to test)
+    };
+
+    const state = {
+        date: new Date().toLocaleDateString(),
+        data: {
+            tech: { selected: null, startTime: null, input: "", done: false },
+            phys: false,
+            rel: false,
+            stats: { streak: 0, lastDate: null, total: 0 },
+            optional: [] // Array of indices
+        }
+    };
+
+    // DOM Elements
+    const ui = {
+        date: document.getElementById('date-display'),
+        techSelect: document.getElementById('tech-select'),
+        techControls: document.getElementById('tech-controls'),
+        timerStatus: document.getElementById('timer-status'),
+        techInput: document.getElementById('tech-input'),
+        checkTech: document.getElementById('check-tech'),
+        checkPhys: document.getElementById('check-phys'),
+        checkRel: document.getElementById('check-rel'),
+        gate: document.getElementById('gate'),
+        gateMsg: document.getElementById('gate-message'),
+        optSection: document.getElementById('optional-section'),
+        optChecks: document.querySelectorAll('.opt-check'),
+        stats: {
+            streak: document.getElementById('streak-display'),
+            last: document.getElementById('last-display'),
+            total: document.getElementById('total-display')
+        }
+    };
+
+    function init() {
+        ui.date.textContent = state.date;
+        const stored = JSON.parse(localStorage.getItem('daily_discipline_v2'));
+
+        if (stored) {
+            // Check if day changed
+            if (stored.currentDate !== state.date) {
+                // New Day Logic
+                state.data.stats = stored.data.stats; // Preserve stats
+                
+                // Streak Logic: If last completed date wasn't yesterday, reset streak check?
+                // Minimal approach: We only increment streak on completion. 
+                // If they miss a day, the logic in 'checkCompletion' won't fire, 
+                // but we need to reset streak if they missed yesterday.
+                
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterStr = yesterday.toLocaleDateString();
+                
+                if (state.data.stats.lastDate !== yesterStr && state.data.stats.lastDate !== state.date) {
+                    state.data.stats.streak = 0; // Reset streak if chain broken
+                }
+
+                // Reset daily tasks (tech, phys, rel, optional are cleared by default init)
+            } else {
+                // Same Day - Restore State
+                state.data = stored.data;
+            }
+        }
+        
+        render();
+        startTimerLoop();
+    }
+
+    function save() {
+        localStorage.setItem('daily_discipline_v2', JSON.stringify({
+            currentDate: state.date,
+            data: state.data
+        }));
+    }
+
+    function render() {
+        // Tech Section
+        ui.techSelect.value = state.data.tech.selected || "";
+        ui.techInput.value = state.data.tech.input;
+        ui.checkTech.checked = state.data.tech.done;
+        
+        if (state.data.tech.done) ui.techSelect.disabled = true;
+
+        // Other Checks
+        ui.checkPhys.checked = state.data.phys;
+        ui.checkRel.checked = state.data.rel;
+
+        // Optional Checks
+        ui.optChecks.forEach((cb, index) => {
+            cb.checked = state.data.optional.includes(index);
+        });
+
+        // Stats
+        ui.stats.streak.textContent = `Streak: ${state.data.stats.streak}`;
+        ui.stats.last.textContent = `Last: ${state.data.stats.lastDate || 'Never'}`;
+        ui.stats.total.textContent = `Total: ${state.data.stats.total}`;
+
+        updateGate();
+        checkTimer();
+    }
+
+    // Logic
+    function checkTimer() {
+        const { selected, startTime, done } = state.data.tech;
+        
+        if (done) {
+            ui.techControls.classList.remove('disabled-overlay');
+            ui.timerStatus.textContent = "Session Complete.";
+            return;
+        }
+
+        if (!selected) {
+            ui.techControls.classList.add('disabled-overlay');
+            ui.timerStatus.textContent = "Select a topic to start 10m timer.";
+            return;
+        }
+
+        if (!startTime) {
+            // Should not happen if select logic works, but safeguard
+            ui.techControls.classList.add('disabled-overlay');
+            return;
+        }
+
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.ceil((CONFIG.minTimeMs - elapsed) / 60000);
+
+        if (elapsed < CONFIG.minTimeMs) {
+            ui.techControls.classList.add('disabled-overlay');
+            ui.timerStatus.textContent = `Focus timer active. ${remaining} min remaining...`;
+        } else {
+            ui.techControls.classList.remove('disabled-overlay');
+            ui.timerStatus.textContent = "Timer complete. Enter output details to finish.";
+            
+            // Validate input for checkbox
+            if (ui.techInput.value.trim().length < 5) {
+                ui.checkTech.disabled = true;
+                ui.timerStatus.textContent = "Write what you worked on to enable checkbox.";
+            } else {
+                ui.checkTech.disabled = false;
+            }
+        }
+    }
+
+    function updateGate() {
+        const allDone = state.data.tech.done && state.data.phys && state.data.rel;
+
+        if (allDone) {
+            ui.gate.classList.add('unlocked');
+            ui.gateMsg.textContent = "Free time earned. Stop when it stops being fun.";
+            ui.optSection.classList.add('visible');
+
+            // Handle stats increment (only once per day)
+            if (state.data.stats.lastDate !== state.date) {
+                state.data.stats.streak++;
+                state.data.stats.total++;
+                state.data.stats.lastDate = state.date;
+                save();
+                render(); // Re-render to show new stats
+            }
+        } else {
+            ui.gate.classList.remove('unlocked');
+            ui.gateMsg.textContent = "Locked. Daily minimum not met.";
+            ui.optSection.classList.remove('visible');
+        }
+    }
+
+    // Event Listeners
+    ui.techSelect.addEventListener('change', (e) => {
+        if (!state.data.tech.startTime) {
+            state.data.tech.startTime = Date.now();
+        }
+        state.data.tech.selected = e.target.value;
+        save();
+        render();
+    });
+
+    ui.techInput.addEventListener('input', (e) => {
+        state.data.tech.input = e.target.value;
+        save();
+        checkTimer(); // Check input length validity
+    });
+
+    ui.checkTech.addEventListener('change', (e) => {
+        state.data.tech.done = e.target.checked;
+        save();
+        render();
+    });
+
+    ui.checkPhys.addEventListener('change', (e) => {
+        state.data.phys = e.target.checked;
+        save();
+        render();
+    });
+
+    ui.checkRel.addEventListener('change', (e) => {
+        state.data.rel = e.target.checked;
+        save();
+        render();
+    });
+
+    ui.optChecks.forEach((cb, index) => {
+        cb.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                if (!state.data.optional.includes(index)) state.data.optional.push(index);
+            } else {
+                state.data.optional = state.data.optional.filter(i => i !== index);
+            }
+            save();
+        });
+    });
+
+    // Timer Loop
+    function startTimerLoop() {
+        setInterval(() => {
+            if (!state.data.tech.done) checkTimer();
+        }, 10000); // Check every 10s
+    }
+
+    init();
+
+</script>
+</body>
+</html>
